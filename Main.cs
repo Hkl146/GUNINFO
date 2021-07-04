@@ -12,7 +12,7 @@ namespace GUNINFO
     {
         public const string Name = "GUNINFO"; // Name of the Mod.  (MUST BE SET)
         public const string Description = "Gunfire Reborn Info"; // Description for the Mod.  (Set as null if none)
-        public const string Author = "zhuchong，MT"; // Author of the Mod.  (Set as null if none)
+        public const string Author = "MT"; // Author of the Mod.  (Set as null if none)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
         public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
@@ -21,7 +21,7 @@ namespace GUNINFO
     public class GUNINFO : MelonMod
     {
 
-        public static bool shownpc = false;//目前只能显示第一关的隐藏门，而且进入第二关后疯狂掉帧，待完善
+        public static bool shownpc = false;
         public static bool caidan = true;
         public override void OnApplicationStart() // Runs after Game Initialization.
         {
@@ -45,6 +45,7 @@ namespace GUNINFO
                 {
                     GUNINFO.caidan = !GUNINFO.caidan;
                 }
+
             }
             catch
             {
@@ -88,8 +89,8 @@ namespace GUNINFO
                             Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(value.centerPointTrans.transform.position);
                             if (vector.z > 0f)
                             {
-                                double num = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, value.centerPointTrans.position);
-                                if (num > 50.0)
+                                double distance = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, value.centerPointTrans.position);
+                                if (distance > 50.0)
                                 {
                                     guistyle.normal.textColor = new Color32(240, 240, 240, 160);
                                 }
@@ -97,19 +98,19 @@ namespace GUNINFO
                                 {
                                     guistyle.normal.textColor = new Color32(240, 240, 240, 220);
                                 }
-                                if (num > 50.0)
+                                if (distance > 50.0)
                                 {
                                     guistyle.fontSize = 15;
                                 }
-                                else if (num < 10.0)
+                                else if (distance < 10.0)
                                 {
                                     guistyle.fontSize = 25;
                                 }
                                 else
                                 {
-                                    guistyle.fontSize = (int)(num * -0.25 + 27.5);
+                                    guistyle.fontSize = (int)(distance * -0.25 + 27.5);
                                 }
-                                string text = num.ToString("0");
+                                string text = distance.ToString("0");
                                 text = this.FightTypeToString(value) + "  " + text;
                                 GUI.Label(new Rect(vector.x - 200f, (float)Screen.height - vector.y - 30f, 400f, 60f), text, guistyle);
                             }
@@ -130,7 +131,17 @@ namespace GUNINFO
 
         public bool ShowObject(NewPlayerObject obj)
         {
-            return obj.FightType == ServerDefine.FightType.NWARRIOR_DROP_EQUIP || obj.FightType == ServerDefine.FightType.NWARRIOR_DROP_RELIC || obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_SMITH || obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_SHOP || (obj.FightType == ServerDefine.FightType.WARRIOR_OBSTACLE_NORMAL && (obj.Shape == 4406 || obj.Shape == 4419 || obj.Shape == 4427)) || obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_EVENT || obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_ITEMBOX || (obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_TRANSFER && (obj.Shape == 4016 || obj.Shape == 4009 || obj.Shape == 4019)) || obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_GSCASHSHOP;
+            if (obj.FightType == ServerDefine.FightType.NWARRIOR_DROP_EQUIP) return true;
+
+            else if (obj.FightType == ServerDefine.FightType.NWARRIOR_DROP_RELIC) return true; 
+            else if (obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_SMITH) return true; 
+            else if (obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_SHOP) return true; 
+            else if ((obj.FightType == ServerDefine.FightType.WARRIOR_OBSTACLE_NORMAL && (obj.Shape == 4406||obj.Shape == 4419||obj.Shape == 4427)) )return true;
+            else if ((obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_TRANSFER && (obj.Shape == 4016 || obj.Shape == 4009 || obj.Shape == 4019))) return true;
+            else if (obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_EVENT) return true; 
+            else if (obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_ITEMBOX) return true;
+            else if  ( obj.FightType == ServerDefine.FightType.NWARRIOR_NPC_GSCASHSHOP) return true;
+            return false;
         }
         public String FightTypeToString(NewPlayerObject obj)
         {
@@ -170,13 +181,13 @@ namespace GUNINFO
         }
         public void weaponinfoONGUI()
         {
-            int num = 0;
-            int num2 = 400;
-            int num3 = Screen.width - 320;
+            int WEPNPOS = 0;
+            int WEPNY = 400;
+            int WEPNX = Screen.width - 320;
             string text = "一号位武器";
             foreach (KeyValuePair<int, WeaponPerformanceObj> keyValuePair in HeroCameraManager.HeroObj.BulletPreFormCom.weapondict)
             {
-                switch (num++)
+                switch (WEPNPOS++)
                 {
                     case 0:
                         continue;
@@ -185,65 +196,65 @@ namespace GUNINFO
                         break;
                     case 2:
                         text = "二号位武器";
-                        num3 = Screen.width - 170;
-                        num2 = 400;
+                        WEPNX = Screen.width - 170;
+                        WEPNY = 400;
                         break;
                 }
-                GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), text);
-                num2 += 20;
+                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), text);
+                WEPNY += 20;
                 if (keyValuePair.value.WeaponAttr.ElementType != 2048)
                 {
                     if (keyValuePair.value.WeaponAttr.ElementType == 256)
                     {
-                        GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "属性:电");
+                        GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "属性:电");
                     }
                     else if (keyValuePair.value.WeaponAttr.ElementType == 512)
                     {
-                        GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "属性:毒");
+                        GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "属性:毒");
                     }
                     else if (keyValuePair.value.WeaponAttr.ElementType == 1024)
                     {
-                        GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "属性:火");
+                        GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "属性:火");
                     }
-                    num2 += 20;
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "属性异常几率:" + keyValuePair.value.WeaponAttr.DebuffProb / 100 + "%");
-                    num2 += 20;
+                    WEPNY += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "属性异常几率:" + keyValuePair.value.WeaponAttr.DebuffProb / 100 + "%");
+                    WEPNY += 20;
                 }
                 if (keyValuePair.value.WeaponAttr.Stability[0] != 0)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "稳定性加成: " + keyValuePair.value.WeaponAttr.Stability[0]);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "稳定性加成: " + keyValuePair.value.WeaponAttr.Stability[0]);
+                    WEPNY += 20;
                 }
                 if (keyValuePair.value.WeaponAttr.Accuracy[0] != 0)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "精准度加成: " + keyValuePair.value.WeaponAttr.Accuracy[0]);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "精准度加成: " + keyValuePair.value.WeaponAttr.Accuracy[0]);
+                    WEPNY += 20;
                 }
                 if (keyValuePair.value.WeaponAttr.AttSpeed[0] != 0)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "射击速度: " + keyValuePair.value.WeaponAttr.AttSpeed[0]);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击速度: " + keyValuePair.value.WeaponAttr.AttSpeed[0]);
+                    WEPNY += 20;
                 }
                 if (keyValuePair.value.WeaponAttr.FillTime != 0)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "换弹速度: " + keyValuePair.value.WeaponAttr.FillTime);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "换弹速度: " + keyValuePair.value.WeaponAttr.FillTime);
+                    WEPNY += 20;
                 }
-                GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "暴击倍率: " + keyValuePair.value.WeaponAttr.CrazyEff / 10000);
-                num2 += 20;
-                GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "子弹速度: " + keyValuePair.value.WeaponAttr.BulletSpeed);
-                num2 += 20;
-                GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "射击距离: " + keyValuePair.value.WeaponAttr.AttDis);
-                num2 += 20;
+                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + keyValuePair.value.WeaponAttr.CrazyEff / 10000);
+                WEPNY += 20;
+                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "子弹速度: " + keyValuePair.value.WeaponAttr.BulletSpeed);
+                WEPNY += 20;
+                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击距离: " + keyValuePair.value.WeaponAttr.AttDis);
+                WEPNY += 20;
                 if (keyValuePair.value.WeaponAttr.Radius != 0f)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "爆炸范围: " + keyValuePair.value.WeaponAttr.Radius);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "爆炸范围: " + keyValuePair.value.WeaponAttr.Radius);
+                    WEPNY += 20;
                 }
                 if (keyValuePair.value.WeaponAttr.LuckyHit != 0)
                 {
-                    GUI.Label(new Rect((float)num3, (float)num2, 150f, 20f), "幸运一击加成: " + keyValuePair.value.WeaponAttr.LuckyHit);
-                    num2 += 20;
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "幸运一击加成: " + keyValuePair.value.WeaponAttr.LuckyHit);
+                    WEPNY += 20;
                 }
             }
         }
