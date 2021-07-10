@@ -120,9 +120,9 @@ namespace GUNINFO
         public static bool caidan = true;
         public static bool jiangpin = false;
         public static int pinglv = 0;
-        public static List<double> ItemINFOdata;
-        public static List<string> ItemINFOtext;
-        private static int ItemINFONum;
+        public static List<double> ItemINFOdata = new List<double>();
+        public static List<string> ItemINFOtext = new List<string>();
+        private static int ItemINFONum = 0;
         public static bool test = false;
         public override void OnApplicationStart() // Runs after Game Initialization.
         {
@@ -180,9 +180,9 @@ namespace GUNINFO
                     GUI.Label(new Rect((float)(Screen.width - 225), INFOGUIY, 200, 20f), GUNINFO.shownpc ? "I 场景信息: 开启" : "I 场景信息: 关闭");
                     GUI.Label(new Rect((float)(Screen.width - 110), INFOGUIY, 200, 20f), GUNINFO.jiangpin ? "U 降频模式: 开启" : "U 降频模式: 关闭");
                     INFOGUIY += 20;
-                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "因为掉帧，按住T显示场景物品，I为单次开关");
+                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "如果掉帧，按住T显示场景物品，I为单次开关");
                     INFOGUIY += 20;
-                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "U开启降频模式,降低刷新频率以提高帧率");
+                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "U开启降频模式,降低刷新频率以提高帧率(勉强有点用)");
                     INFOGUIY += 20;
                     if (HeroCameraManager.HeroObj != null && HeroCameraManager.HeroObj.BulletPreFormCom != null && HeroCameraManager.HeroObj.BulletPreFormCom.weapondict != null)
                     {
@@ -199,12 +199,7 @@ namespace GUNINFO
                     //调用8次刷新一次，尝试增加帧数
                     if (GUNINFO.pinglv == 0)
                     {
-                        if (GUNINFO.jiangpin)
-                        {
-                            ItemINFOdata = new List<double>();
-                            ItemINFOtext = new List<string>();
-                            ItemINFONum = 0;
-                        }
+
                         foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
                         {
                             NewPlayerObject value = keyValuePair.Value;
@@ -255,9 +250,26 @@ namespace GUNINFO
 
                             GUI.Label(new Rect(X, Y, 400f, 60f), text, guistyle);
                         }
-                        GUNINFO.pinglv = (GUNINFO.pinglv + 1) % 8;//调用8次刷新一次，尝试增加帧数
-                    }
 
+
+                        if (!GUNINFO.jiangpin)
+                        {
+                            GUNINFO.pinglv = 0;
+                            ItemINFOdata = new List<double>();
+                            ItemINFOtext = new List<string>();
+                            ItemINFONum = 0;
+                        }
+                    }
+                    if (GUNINFO.jiangpin)
+                    {
+                        GUNINFO.pinglv = (GUNINFO.pinglv + 1) % 8;//调用8次刷新一次，尝试增加帧数
+                        if (GUNINFO.pinglv == 0)
+                        {
+                            ItemINFOdata = new List<double>();
+                            ItemINFOtext = new List<string>();
+                            ItemINFONum = 0;
+                        }
+                    }
                 }
                 if (GUNINFO.test)
                 {
