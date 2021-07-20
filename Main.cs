@@ -14,7 +14,7 @@ namespace GUNINFO
         public const string Description = "Gunfire Reborn Info"; // Description for the Mod.  (Set as null if none)
         public const string Author = "MT"; // Author of the Mod.  (Set as null if none)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "1.2.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
 
@@ -25,8 +25,7 @@ namespace GUNINFO
 
         private static bool shownpc = false;
         private static bool caidan = true;
-        private static bool jiangpin = false;
-        private static int pinglv = 0;
+        private static bool shuaxin = false;
         private float[] ItemINFOdata;
         private string[] ItemINFOtext;
         private int ItemINFONum = 0;
@@ -41,60 +40,41 @@ namespace GUNINFO
             try
             {
 
-
-                if (Input.GetKeyUp(KeyCode.T) || Input.GetKeyUp(KeyCode.I) || Input.GetKeyDown(KeyCode.T))
+                if (Input.GetKeyUp(KeyCode.I))
                 {
                     GUNINFO.shownpc = !GUNINFO.shownpc;
+                    if (GUNINFO.shownpc)
+                        GUNINFOGetObject();
                 }
+
                 if (Input.GetKeyUp(KeyCode.P))
                 {
                     GUNINFO.caidan = !GUNINFO.caidan;
                 }
+
                 if (Input.GetKeyUp(KeyCode.U))
                 {
-                    GUNINFO.jiangpin = !GUNINFO.jiangpin;
-                    GUNINFO.pinglv = 0;
+                    GUNINFO.shuaxin = !GUNINFO.shuaxin;
                 }
+
                 if (Input.GetKeyUp(KeyCode.O))
                 {
                     //GUNINFO.test = !GUNINFO.test;
 
 
-
                 }
-                if (GUNINFO.shownpc)
+
+                if (Input.GetKeyDown(KeyCode.T))
                 {
-                    if (!GUNINFO.jiangpin)
+                    if (!GUNINFO.shuaxin)
                     {
-                        int Num = 0;
-                        foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
-                        {
-                            NewPlayerObject value = keyValuePair.Value;
-                            if (!(value.centerPointTrans == null) && this.ShowObject(value))
-                            {
-                                Num++;
-                            }
-                        }
-                        ItemINFOdata = new float[Num * 3];
-                        ItemINFOtext = new string[Num];
-                        ItemINFONum = 0;
-
-                        foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
-                        {
-                            NewPlayerObject value = keyValuePair.Value;
-                            if (!(value.centerPointTrans == null) && this.ShowObject(value))
-                            {
-                                Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(value.centerPointTrans.transform.position);
-
-                                ItemINFOdata[ItemINFONum * 3] = value.centerPointTrans.transform.position.x;
-                                ItemINFOdata[ItemINFONum * 3 + 1] = value.centerPointTrans.transform.position.y;
-                                ItemINFOdata[ItemINFONum * 3 + 2] = value.centerPointTrans.transform.position.z;
-                                ItemINFOtext[ItemINFONum] = this.FightTypeToString(value);
-                                ItemINFONum++;
-
-                            }
-                        }
+                        GUNINFOGetObject();
                     }
+                }
+
+                if (GUNINFO.shuaxin)
+                {
+                    GUNINFOGetObject();
                 }
 
             }
@@ -114,11 +94,9 @@ namespace GUNINFO
                     int INFOGUIY = 400;
                     GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 200, 20f), GUNINFO.caidan ? "P 菜单: 开启" : "P 菜单: 关闭");
                     GUI.Label(new Rect((float)(Screen.width - 225), INFOGUIY, 200, 20f), GUNINFO.shownpc ? "I 场景信息: 开启" : "I 场景信息: 关闭");
-                    GUI.Label(new Rect((float)(Screen.width - 110), INFOGUIY, 200, 20f), GUNINFO.jiangpin ? "U 降频模式: 开启" : "U 降频模式: 关闭");
+                    GUI.Label(new Rect((float)(Screen.width - 110), INFOGUIY, 200, 20f), GUNINFO.shuaxin ? "U 即刻刷新: 开启" : "U 即刻刷新: 关闭");
                     INFOGUIY += 20;
-                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "如果掉帧，按住T显示场景物品，I为单次开关");
-                    INFOGUIY += 20;
-                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "U开启降频模式,降低刷新频率以提高帧率(已经没什么作用)");
+                    GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 320, 20f), "每次按T刷新场景物品，U开启即刻刷新模式");
                     INFOGUIY += 20;
                     if (HeroCameraManager.HeroObj != null && HeroCameraManager.HeroObj.BulletPreFormCom != null && HeroCameraManager.HeroObj.BulletPreFormCom.weapondict != null)
                     {
@@ -127,122 +105,39 @@ namespace GUNINFO
                         this.weaponinfoONGUI(INFOGUIY);
                     }
                 }
+
                 GUIStyle guistyle = new GUIStyle();
                 guistyle.alignment = TextAnchor.MiddleCenter;
                 guistyle.normal.background = null;
                 if (GUNINFO.shownpc)
                 {
-                    if (!GUNINFO.jiangpin)
+                    for (int Num = 0; Num < ItemINFONum; Num++)
                     {
+                        float X = (float)ItemINFOdata[Num * 3];
+                        float Y = (float)ItemINFOdata[Num * 3 + 1];
+                        float Z = (float)ItemINFOdata[Num * 3 + 2];
 
-                        for (int Num = 0; Num < ItemINFONum; Num++)
+                        Vector3 info_vector = new Vector3(X, Y, Z);
+                        Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(info_vector);
+                        if (vector.z > 0f)
                         {
-                            float X = (float)ItemINFOdata[Num * 3];
-                            float Y = (float)ItemINFOdata[Num * 3 + 1];
-                            float Z = (float)ItemINFOdata[Num * 3 + 2];
+                            double distance = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, info_vector);
+                            if (distance < 2.5) continue;
+                            if (distance > 50.0) guistyle.normal.textColor = new Color32(240, 240, 240, 160);
+                            else guistyle.normal.textColor = new Color32(240, 240, 240, 220);
+                            if (distance > 50.0) guistyle.fontSize = 15;
+                            else if (distance < 10.0) guistyle.fontSize = 25;
+                            else guistyle.fontSize = (int)(distance * -0.25 + 27.5);
 
-                            Vector3 info_vector = new Vector3(X, Y, Z);
-                            Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(info_vector);
-                            if (vector.z > 0f)
-                            {
-                                double distance = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, info_vector);
-                                if (distance < 2.5) continue;
-                                if (distance > 50.0) guistyle.normal.textColor = new Color32(240, 240, 240, 160);
-                                else guistyle.normal.textColor = new Color32(240, 240, 240, 220);
-                                if (distance > 50.0) guistyle.fontSize = 15;
-                                else if (distance < 10.0) guistyle.fontSize = 25;
-                                else guistyle.fontSize = (int)(distance * -0.25 + 27.5);
+                            string text = ItemINFOtext[Num];
+                            text = text + "  " + distance.ToString("0.0");
+                            GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), text, guistyle);
 
-                                string text = ItemINFOtext[Num];
-                                text = text + "  " + distance.ToString("0.0");
-                                GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), text, guistyle);
-
-                            }
                         }
-                    }
-                    else if (GUNINFO.jiangpin)
-                    {
-                        //调用8次刷新一次，尝试增加帧数
-                        //已经没用存在的必要
-
-                        if (GUNINFO.pinglv == 0)
-                        {
-                            int Num = 0;
-                            foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
-                            {
-                                NewPlayerObject value = keyValuePair.Value;
-                                if (!(value.centerPointTrans == null) && this.ShowObject(value))
-                                {
-                                    Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(value.centerPointTrans.transform.position);
-                                    if (vector.z > 0f)
-                                    {
-                                        Num++;
-                                    }
-                                }
-                            }
-                            ItemINFOdata = new float[Num * 3];
-                            ItemINFOtext = new string[Num];
-                            ItemINFONum = 0;
-
-                            foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
-                            {
-                                NewPlayerObject value = keyValuePair.Value;
-                                if (!(value.centerPointTrans == null) && this.ShowObject(value))
-                                {
-                                    Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(value.centerPointTrans.transform.position);
-                                    if (vector.z > 0f)
-                                    {
-                                        double distance = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, value.centerPointTrans.position);
-                                        if (distance < 2.5) continue;
-                                        if (distance > 50.0) guistyle.normal.textColor = new Color32(240, 240, 240, 160);
-                                        else guistyle.normal.textColor = new Color32(240, 240, 240, 220);
-                                        if (distance > 50.0) guistyle.fontSize = 15;
-                                        else if (distance < 10.0) guistyle.fontSize = 25;
-                                        else guistyle.fontSize = (int)(distance * -0.25 + 27.5);
-
-                                        string text = this.FightTypeToString(value) + "  " + distance.ToString("0.0");
-                                        GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), text, guistyle);
-
-
-                                        ItemINFOdata[ItemINFONum * 3] = value.centerPointTrans.transform.position.x;
-                                        ItemINFOdata[ItemINFONum * 3 + 1] = value.centerPointTrans.transform.position.y;
-                                        ItemINFOdata[ItemINFONum * 3 + 2] = value.centerPointTrans.transform.position.z;
-                                        ItemINFOtext[ItemINFONum] = this.FightTypeToString(value);
-                                        ItemINFONum++;
-                                    }
-                                }
-                            }
-                        }
-
-                        else if (GUNINFO.pinglv != 0)
-                        {
-                            for (int Num = 0; Num < ItemINFONum; Num++)
-                            {
-                                float X = (float)ItemINFOdata[Num * 3];
-                                float Y = (float)ItemINFOdata[Num * 3 + 1];
-                                float Z = (float)ItemINFOdata[Num * 3 + 2];
-                                string text = ItemINFOtext[Num];
-                                Vector3 info_vector = new Vector3(X, Y, Z);
-                                Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(info_vector);
-                                if (vector.z > 0f)
-                                {
-                                    double distance = (double)Vector3.Distance(HeroMoveManager.HeroObj.centerPointTrans.position, info_vector);
-                                    if (distance < 2.5) continue;
-                                    if (distance > 50.0) guistyle.normal.textColor = new Color32(240, 240, 240, 160);
-                                    else guistyle.normal.textColor = new Color32(240, 240, 240, 220);
-                                    if (distance > 50.0) guistyle.fontSize = 15;
-                                    else if (distance < 10.0) guistyle.fontSize = 25;
-                                    else guistyle.fontSize = (int)(distance * -0.25 + 27.5);
-
-                                    text = text + "  " + distance.ToString("0.0");
-                                    GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), text, guistyle);
-
-                                }
-                            }
-                        }
-                        GUNINFO.pinglv = (GUNINFO.pinglv + 1) % 8;//调用8次刷新一次，尝试增加帧数
                     }
                 }
+
+
                 if (GUNINFO.test)
                 {
 
@@ -314,9 +209,42 @@ namespace GUNINFO
                 default:
                     return "unk";
             }
-
-
         }
+
+        public bool GUNINFOGetObject()
+        {
+            int Num = 0;
+
+            foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
+            {
+                NewPlayerObject value = keyValuePair.Value;
+                if (!(value.centerPointTrans == null) && this.ShowObject(value))
+                {
+                    Num++;
+                }
+            }
+
+            ItemINFOdata = new float[Num * 3];
+            ItemINFOtext = new string[Num];
+            ItemINFONum = 0;
+
+            foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
+            {
+                NewPlayerObject value = keyValuePair.Value;
+                if (!(value.centerPointTrans == null) && this.ShowObject(value))
+                {
+                    ItemINFOdata[ItemINFONum * 3] = value.centerPointTrans.transform.position.x;
+                    ItemINFOdata[ItemINFONum * 3 + 1] = value.centerPointTrans.transform.position.y;
+                    ItemINFOdata[ItemINFONum * 3 + 2] = value.centerPointTrans.transform.position.z;
+                    ItemINFOtext[ItemINFONum] = this.FightTypeToString(value);
+                    ItemINFONum++;
+                }
+            }
+
+            if (ItemINFONum != 0) return true;
+            else return false;
+        }
+
         public void weaponinfoONGUI(int GUIY)
         {
             int WEPNPOS = 0;
@@ -340,8 +268,10 @@ namespace GUNINFO
                         WEPNY = GUIY;
                         break;
                 }
+
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), text);
                 WEPNY += 20;
+
                 if (weapondict.value.WeaponAttr.ElementType != 2048)
                 {
                     if (weapondict.value.WeaponAttr.ElementType == 256)
@@ -360,6 +290,7 @@ namespace GUNINFO
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "属性异常几率:" + weapondict.value.WeaponAttr.DebuffProb / 100 + "%");
                     WEPNY += 20;
                 }
+
                 if (weapondict.value.WeaponAttr.Stability.get_Item(0) != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "稳定性加成: " + weapondict.value.WeaponAttr.Stability.get_Item(0));
@@ -371,32 +302,40 @@ namespace GUNINFO
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "精准度加成: " + weapondict.value.WeaponAttr.Accuracy.get_Item(0));
                     WEPNY += 20;
                 }
+
                 if (weapondict.value.WeaponAttr.AttSpeed.get_Item(0) != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击速度: " + weapondict.value.WeaponAttr.AttSpeed.get_Item(0));
                     WEPNY += 20;
                 }
+
                 if (weapondict.value.WeaponAttr.FillTime != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "换弹速度: " + weapondict.value.WeaponAttr.FillTime);
                     WEPNY += 20;
                 }
+
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + weapondict.value.WeaponAttr.CrazyEff / 10000);
                 WEPNY += 20;
+
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "子弹速度: " + weapondict.value.WeaponAttr.BulletSpeed);
                 WEPNY += 20;
+
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击距离: " + weapondict.value.WeaponAttr.AttDis);
                 WEPNY += 20;
+
                 if (weapondict.value.WeaponAttr.Radius != 0f)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "爆炸范围: " + weapondict.value.WeaponAttr.Radius);
                     WEPNY += 20;
                 }
+
                 if (weapondict.value.WeaponAttr.LuckyHit != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "幸运一击加成: " + weapondict.value.WeaponAttr.LuckyHit);
                     WEPNY += 20;
                 }
+
             }
         }
 
