@@ -41,27 +41,29 @@ namespace GUNINFO
             try
             {
 
-
                 if (Input.GetKeyUp(KeyCode.T) || Input.GetKeyUp(KeyCode.I) || Input.GetKeyDown(KeyCode.T))
                 {
                     GUNINFO.shownpc = !GUNINFO.shownpc;
                 }
+
                 if (Input.GetKeyUp(KeyCode.P))
                 {
                     GUNINFO.caidan = !GUNINFO.caidan;
                 }
+
                 if (Input.GetKeyUp(KeyCode.U))
                 {
                     GUNINFO.jiangpin = !GUNINFO.jiangpin;
                     GUNINFO.pinglv = 0;
                 }
+
                 if (Input.GetKeyUp(KeyCode.O))
                 {
                     //GUNINFO.test = !GUNINFO.test;
 
 
-
                 }
+
                 if (GUNINFO.shownpc)
                 {
                     if (!GUNINFO.jiangpin)
@@ -240,9 +242,10 @@ namespace GUNINFO
                                 }
                             }
                         }
-                        GUNINFO.pinglv = (GUNINFO.pinglv + 1) % 8;//调用8次刷新一次，尝试增加帧数
                     }
                 }
+
+
                 if (GUNINFO.test)
                 {
 
