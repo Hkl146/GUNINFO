@@ -14,7 +14,7 @@ namespace GUNINFO
         public const string Description = "Gunfire Reborn Info"; // Description for the Mod.  (Set as null if none)
         public const string Author = "MT"; // Author of the Mod.  (Set as null if none)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.2.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "1.3.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
     }
 
@@ -26,14 +26,29 @@ namespace GUNINFO
         private static bool shownpc = false;
         private static bool caidan = true;
         private static bool shuaxin = false;
-        private float[] ItemINFOdata;
-        private string[] ItemINFOtext;
+        private int MAXINFO = 20;
+        private float[] ItemINFOdata = new float[60];
+        private string[] ItemINFOtext = new string[20];
         private int ItemINFONum = 0;
         private static bool test = false;
+        private static bool Init = false;
+        private static float Initflag = 0;
         public override void OnApplicationStart() // Runs after Game Initialization.
         {
             MelonLogger.Msg("GUNINFO Loaded");
         }
+
+        public override void OnSceneWasInitialized(int buildindex, string sceneName) // Runs when a Scene has Initialized and is passed the Scene's Build Index and Name.
+        {
+            if (buildindex == -1 && sceneName != "home" && sceneName != "2000101" && sceneName != "2000103" && sceneName != "2000104" && GUNINFO.shownpc && !GUNINFO.shuaxin && HeroCameraManager.HeroObj != null && HeroMoveManager.HeroObj.centerPointTrans != null)
+            {
+                GUNINFO.Init = true;
+                GUNINFO.Initflag = HeroMoveManager.HeroObj.centerPointTrans.position.x;
+                //因为地图不会马上刷新，只能是看位置变没变再刷新一次，在U模式没开启的状况下
+            }
+
+        }
+
 
         public override void OnUpdate() // Runs once per frame.
         {
@@ -61,12 +76,17 @@ namespace GUNINFO
                 {
                     //GUNINFO.test = !GUNINFO.test;
 
+                }
+
+                if (GUNINFO.test)
+                {
+
 
                 }
 
                 if (Input.GetKeyDown(KeyCode.T))
                 {
-                    if (!GUNINFO.shuaxin)
+                    if (!GUNINFO.shuaxin && GUNINFO.shownpc)
                     {
                         GUNINFOGetObject();
                     }
@@ -76,6 +96,7 @@ namespace GUNINFO
                 {
                     GUNINFOGetObject();
                 }
+
 
             }
             catch
@@ -102,20 +123,35 @@ namespace GUNINFO
                     {
                         GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 500f, 20f), "英雄当前移动速度：" + HeroCameraManager.HeroObj.playerProp.Speed.ToString());
                         INFOGUIY += 20;
-                        this.weaponinfoONGUI(INFOGUIY);
+                        //this.weaponinfoONGUI(INFOGUIY);
                     }
                 }
 
-                GUIStyle guistyle = new GUIStyle();
-                guistyle.alignment = TextAnchor.MiddleCenter;
-                guistyle.normal.background = null;
+                if (GUNINFO.Init)
+                {
+                    if (Initflag != HeroMoveManager.HeroObj.centerPointTrans.position.x)
+                    {
+                        GUNINFOGetObject();
+                        GUNINFO.Init = !GUNINFO.Init;
+                    }
+
+                }
+
+
                 if (GUNINFO.shownpc)
                 {
+
+                    GUIStyle guistyle = new GUIStyle();
+                    guistyle.alignment = TextAnchor.MiddleCenter;
+                    guistyle.normal.background = null;
+                    guistyle.fontStyle = FontStyle.Bold;
+
+
                     for (int Num = 0; Num < ItemINFONum; Num++)
                     {
-                        float X = (float)ItemINFOdata[Num * 3];
-                        float Y = (float)ItemINFOdata[Num * 3 + 1];
-                        float Z = (float)ItemINFOdata[Num * 3 + 2];
+                        float X = ItemINFOdata[Num * 3];
+                        float Y = ItemINFOdata[Num * 3 + 1];
+                        float Z = ItemINFOdata[Num * 3 + 2];
 
                         Vector3 info_vector = new Vector3(X, Y, Z);
                         Vector3 vector = CameraManager.MainCameraCom.WorldToScreenPoint(info_vector);
@@ -129,9 +165,7 @@ namespace GUNINFO
                             else if (distance < 10.0) guistyle.fontSize = 25;
                             else guistyle.fontSize = (int)(distance * -0.25 + 27.5);
 
-                            string text = ItemINFOtext[Num];
-                            text = text + "  " + distance.ToString("0.0");
-                            GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), text, guistyle);
+                            GUI.Label(new Rect(vector.x - 150, Screen.height - vector.y - 30f, 300, 60f), ItemINFOtext[Num] + "  " + distance.ToString("0.0") + "M", guistyle);
 
                         }
                     }
@@ -207,7 +241,7 @@ namespace GUNINFO
                 case ServerDefine.FightType.NWARRIOR_NPC_GSCASHSHOP:
                     return "奇货商";
                 default:
-                    return "unk";
+                    return obj.Shape.ToString();
             }
         }
 
@@ -224,8 +258,13 @@ namespace GUNINFO
                 }
             }
 
-            ItemINFOdata = new float[Num * 3];
-            ItemINFOtext = new string[Num];
+            if (Num > MAXINFO)
+            {
+                ItemINFOdata = new float[Num * 3];
+                ItemINFOtext = new string[Num];
+                MAXINFO = Num;
+            }
+
             ItemINFONum = 0;
 
             foreach (KeyValuePair<int, NewPlayerObject> keyValuePair in NewPlayerManager.PlayerDict)
@@ -241,6 +280,11 @@ namespace GUNINFO
                 }
             }
 
+            if (!GUNINFO.shuaxin)
+            {
+                MelonLogger.Msg("GUNINFO UPDATE");
+            }
+
             if (ItemINFONum != 0) return true;
             else return false;
         }
@@ -250,7 +294,6 @@ namespace GUNINFO
             int WEPNPOS = 0;
             int WEPNX = Screen.width - 320;
             int WEPNY = GUIY;
-            string text = "一号位武器";
             //当前武器ObjectID
             //var mwep = HeroCameraManager.HeroObj.playerProp.CurWeapon[3]; 
             foreach (KeyValuePair<int, WeaponPerformanceObj> weapondict in HeroCameraManager.HeroObj.BulletPreFormCom.weapondict)
@@ -260,17 +303,19 @@ namespace GUNINFO
                     case 0:
                         continue;
                     case 1:
-                        text = "一号位武器";
+                        GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "一号位武器");
+                        WEPNY += 20;
                         break;
                     case 2:
-                        text = "二号位武器";
                         WEPNX = Screen.width - 170;
                         WEPNY = GUIY;
+                        GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "二号位武器");
+                        WEPNY += 20;
                         break;
                 }
 
-                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), text);
-                WEPNY += 20;
+
+
 
                 if (weapondict.value.WeaponAttr.ElementType != 2048)
                 {
@@ -291,21 +336,21 @@ namespace GUNINFO
                     WEPNY += 20;
                 }
 
-                if (weapondict.value.WeaponAttr.Stability.get_Item(0) != 0)
+                if (weapondict.value.WeaponAttr.Stability[0] != 0)
                 {
-                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "稳定性加成: " + weapondict.value.WeaponAttr.Stability.get_Item(0));
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "稳定性加成: " + weapondict.value.WeaponAttr.Stability[0]);
                     WEPNY += 20;
                 }
 
-                if (weapondict.value.WeaponAttr.Accuracy.get_Item(0) != 0)
+                if (weapondict.value.WeaponAttr.Accuracy[0] != 0)
                 {
-                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "精准度加成: " + weapondict.value.WeaponAttr.Accuracy.get_Item(0));
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "精准度加成: " + weapondict.value.WeaponAttr.Accuracy[0]);
                     WEPNY += 20;
                 }
 
-                if (weapondict.value.WeaponAttr.AttSpeed.get_Item(0) != 0)
+                if (weapondict.value.WeaponAttr.AttSpeed[0] != 0)
                 {
-                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击速度: " + weapondict.value.WeaponAttr.AttSpeed.get_Item(0));
+                    GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "射击速度: " + weapondict.value.WeaponAttr.AttSpeed[0]);
                     WEPNY += 20;
                 }
 
@@ -315,8 +360,8 @@ namespace GUNINFO
                     WEPNY += 20;
                 }
 
-                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + weapondict.value.WeaponAttr.CrazyEff / 10000);
-                WEPNY += 20;
+                /* GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + weapondict.value.WeaponAttr.CrazyEff / 10000);
+                 WEPNY += 20;*/
 
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "子弹速度: " + weapondict.value.WeaponAttr.BulletSpeed);
                 WEPNY += 20;
@@ -330,11 +375,11 @@ namespace GUNINFO
                     WEPNY += 20;
                 }
 
-                if (weapondict.value.WeaponAttr.LuckyHit != 0)
+                /*if (weapondict.value.WeaponAttr.LuckyHit != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "幸运一击加成: " + weapondict.value.WeaponAttr.LuckyHit);
                     WEPNY += 20;
-                }
+                }*/
 
             }
         }
