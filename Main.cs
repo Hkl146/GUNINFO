@@ -45,6 +45,7 @@ namespace GUNINFO
                 GUNINFO.Init = true;
                 GUNINFO.Initflag = HeroMoveManager.HeroObj.centerPointTrans.position.x;
                 //因为地图不会马上刷新，只能是看位置变没变再刷新一次，在U模式没开启的状况下
+                //有时候并没有用
             }
 
         }
@@ -124,6 +125,7 @@ namespace GUNINFO
                         GUI.Label(new Rect((float)(Screen.width - 320), INFOGUIY, 500f, 20f), "英雄当前移动速度：" + HeroCameraManager.HeroObj.playerProp.Speed.ToString());
                         INFOGUIY += 20;
                         //this.weaponinfoONGUI(INFOGUIY);
+                        //因为只能获得基础面板所以这个功能被我注释掉了
                     }
                 }
 
@@ -360,8 +362,8 @@ namespace GUNINFO
                     WEPNY += 20;
                 }
 
-                /* GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + weapondict.value.WeaponAttr.CrazyEff / 10000);
-                 WEPNY += 20;*/
+                GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "暴击倍率: " + weapondict.value.WeaponAttr.CrazyEff / 10000);
+                WEPNY += 20;
 
                 GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "子弹速度: " + weapondict.value.WeaponAttr.BulletSpeed);
                 WEPNY += 20;
@@ -375,11 +377,11 @@ namespace GUNINFO
                     WEPNY += 20;
                 }
 
-                /*if (weapondict.value.WeaponAttr.LuckyHit != 0)
+                if (weapondict.value.WeaponAttr.LuckyHit != 0)
                 {
                     GUI.Label(new Rect((float)WEPNX, (float)WEPNY, 150f, 20f), "幸运一击加成: " + weapondict.value.WeaponAttr.LuckyHit);
                     WEPNY += 20;
-                }*/
+                }
 
             }
         }
